@@ -10,11 +10,11 @@ async def read_drivers():
     today = datetime.date.today()
     year = today.year
 
-    calendar = fastf1.get_event_schedule(year, include_testing=False, backend=None, force_ergast=False).to_dict()
+    # calendar = fastf1.get_event_schedule(year, include_testing=False, backend=None, force_ergast=False).to_dict()
 
-    for event in calendar['EventName']:
-        race_event = fastf1.get_session(year, event, 'R', backend=None, force_ergast=False)
-        print('---')
+    # for event in calendar['EventName']:
+        # race_event = fastf1.get_session(year, event, 'R', backend=None, force_ergast=False)
+        # print('---')
         # session = race_event.get_race()
         # print(session)
 
