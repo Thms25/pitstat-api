@@ -1,13 +1,63 @@
-from fastapi_utilities import repeat_every
-from asyncio import sleep
+from pymongo.mongo_client import MongoClient
+import fastf1
+from dotenv import load_dotenv
+import os
+from pprint import pprint
+from ..scrapers.scrape_teams import scrape_teams
 
-@repeat_every(seconds=3)
-async def load_data():
-    print("\nPopulating database\n")
-    await sleep(1)
+load_dotenv()
 
+MONGODB_URL = os.getenv("MONGO_DB_CONNECT")
+client = MongoClient(MONGODB_URL)
 
-@repeat_every(seconds=10)
-async def clean_data():
-    print("\nCleaning database\n")
-    await sleep(1)
+connected = False
+
+try:
+    client.admin.command("ping")
+    connected = True
+    print("Connected to MongoDB")
+except Exception as e:
+    print("Failed to connect to MongoDB")
+    print(e)
+    
+if connected:
+    db = client.get_database("pitstat")
+    schedule = fastf1.get_event_schedule(2024)
+    race = schedule.get_event_by_round(19)
+    race_session = race.get_race()
+    race_session.load()
+
+    teams = scrape_teams()
+    updated_teams = []
+    for d in race_session.drivers:
+        driver = race_session.get_driver(d)
+        driver_team = next((team for team in teams if team['id'] == driver.TeamId or driver.TeamName.lower() in team['name'].lower()), None)
+
+        if 'drivers' not in driver_team:
+            driver_team["drivers"] = [{
+                "broadcast_name": driver.BroadcastName,
+                "full_name": driver.FullName,
+                "image": driver.HeadshotUrl,
+                "number": driver.DriverNumber,
+                "code": driver.Abbreviation,
+                "country_code": driver.CountryCode,
+            }]
+        else:
+            driver_team['drivers'].append({
+                "broadcast_name": driver.BroadcastName,
+                "full_name": driver.FullName,
+                "image": driver.HeadshotUrl,
+                "number": driver.DriverNumber,
+                "code": driver.Abbreviation,
+                "country_code": driver.CountryCode,
+            })
+        updated_teams.append(driver_team)
+
+    try:
+        db.drop_collection("teams")
+        db.create_collection("teams")   
+        db.teams.insert_many(teams)
+        print("Teams inserted to db")
+    except Exception as e:
+        print("Failed to insert teams to db")
+        print(e)
