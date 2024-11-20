@@ -25,13 +25,13 @@ def scrape_teams():
             team_car = next((img for img in team_images if "_team_car_" in img), None)
 
 
-            # team_response = requests.get(team_link)
-            # team_response.raise_for_status()
-            # team_html = response.text
-            # team_document = BeautifulSoup(team_html, 'html.parser')   
+            team_response = requests.get(team_link)
+            team_response.raise_for_status()
+            team_html = team_response.text
+            team_document = BeautifulSoup(team_html, 'html.parser')   
             
-            # table = team_document.select_one('.f1-dl')
-            # pprint(table)
+            table = team_document.select_one('.f1-dl')
+            pprint(table)
         
             
             # images = [img['src'] for img in team_document.select('img')]
@@ -49,6 +49,6 @@ def scrape_teams():
         print(f"An error occurred: {e}")
         return []
 
-# teams = scrape_teams()
+teams = scrape_teams()
 
 # pprint(teams)

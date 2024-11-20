@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException
 import fastf1
 import datetime
+from app.utils.scrapers.scrape_drivers import scrape_drivers
 
 router = APIRouter()
 
 @router.get("/drivers")
 async def read_drivers():
+    scraped_drivers = scrape_drivers()
     print("Reading drivers")
     today = datetime.date.today()
     year = today.year
@@ -17,6 +19,7 @@ async def read_drivers():
         # print('---')
         # session = race_event.get_race()
         # print(session)
+    return scraped_drivers
 
     return [
         {"name": "Lewis Hamilton", "id": 44},
