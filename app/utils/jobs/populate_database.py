@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 from pprint import pprint
 from ..scrapers.scrape_teams import scrape_teams
-
+from .data_fetch.populate_teams import load_teams
 load_dotenv()
 
 MONGODB_URL = os.getenv("MONGO_DB_CONNECT")
@@ -22,36 +22,7 @@ except Exception as e:
     
 if connected:
     db = client.get_database("pitstat")
-    schedule = fastf1.get_event_schedule(2024)
-    race = schedule.get_event_by_round(19)
-    race_session = race.get_race()
-    race_session.load()
-
-    teams = scrape_teams()
-    updated_teams = []
-    for d in race_session.drivers:
-        driver = race_session.get_driver(d)
-        driver_team = next((team for team in teams if team['id'] == driver.TeamId or driver.TeamName.lower() in team['name'].lower()), None)
-
-        if 'drivers' not in driver_team:
-            driver_team["drivers"] = [{
-                "broadcast_name": driver.BroadcastName,
-                "full_name": driver.FullName,
-                "image": driver.HeadshotUrl,
-                "number": driver.DriverNumber,
-                "code": driver.Abbreviation,
-                "country_code": driver.CountryCode,
-            }]
-        else:
-            driver_team['drivers'].append({
-                "broadcast_name": driver.BroadcastName,
-                "full_name": driver.FullName,
-                "image": driver.HeadshotUrl,
-                "number": driver.DriverNumber,
-                "code": driver.Abbreviation,
-                "country_code": driver.CountryCode,
-            })
-        updated_teams.append(driver_team)
+    teams = load_teams()
 
     try:
         db.drop_collection("teams")
