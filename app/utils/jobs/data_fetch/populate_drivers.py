@@ -1,6 +1,6 @@
 import fastf1
 import datetime
-from pprint import pprint
+from ...scrapers.scrape_drivers import scrape_drivers
 
 def load_drivers():
     today_timestamp = datetime.datetime.now()
@@ -8,40 +8,70 @@ def load_drivers():
     year = today.year
     schedule = fastf1.get_event_schedule(year)
     
-    drivers = []
-    
+    drivers = {}
+
     for round in schedule['RoundNumber']:
         if round == 0:
             continue
-        # if round == 4:
+        # if round == 3:
         #     break
         
         event = schedule.get_event_by_round(round)
 
         if event.EventDate > today_timestamp:
             continue
-        
 
         race = event.get_race()
         race.load()
-        print("")
-        for d in race.results['DriverNumber']:
-            driver = race.get_driver(d)
-            if driver.DriverNumber in [d['number'] for d in drivers]:
-                driver_index = next((i for i, d in enumerate(drivers) if d['number'] == driver.DriverNumber), None)
-                drivers[driver_index]['points'] += driver.Points
-            else:
-                drivers.append({
-                    "number": driver.DriverNumber,
-                    "broadcast_name": driver.BroadcastName,
-                    'full_name': driver.FullName,
-                    'code': driver.Abbreviation,
-                    'team': driver.TeamName,
-                    "points": driver.Points
-                })
 
-    drivers.sort(key=lambda x: x['points'], reverse=True)
-    return drivers
+        for d in race.results['DriverNumber']:
+            race_driver = race.get_driver(d)
+            code = race_driver.Abbreviation
+            if code in drivers:
+                drivers[code]['points'] += race_driver.Points
+                if drivers[code]['best_race_finish'] > int(race_driver.Position):
+                    drivers[code]['best_race_finish'] = int(race_driver.Position)
+            else:
+                drivers[code] = {
+                    'id': race_driver.FullName.lower().replace(" ", "_"),
+                    "number": race_driver.DriverNumber,
+                    "broadcast_name": race_driver.BroadcastName,
+                    'full_name': race_driver.FullName,
+                    'code': race_driver.Abbreviation,
+                    "points": race_driver.Points,
+                    'best_race_finish': int(race_driver.Position),
+                    'best_sprint_finish': 25,
+                    'team': {
+                        'id': race_driver.TeamId,
+                        'name': race_driver.TeamName,
+                        'color': race_driver.TeamColor,
+                    },
+                    'images': {
+                        'headshot': race_driver.HeadshotUrl,
+                    },
+                    'country_code': race_driver.CountryCode
+                }
+        
+            if event.EventFormat != 'conventional':
+                sprint = event.get_sprint()
+                sprint.load()
+                sprint_driver = sprint.get_driver(d)
+                drivers[code]['points'] += int(sprint_driver.Points)
+                if drivers[code]['best_sprint_finish'] > int(sprint_driver.Position):
+                    drivers[code]['best_sprint_finish'] = int(sprint_driver.Position)
+                    
+    drivers_list = list(drivers.values())
+    scraped_drivers = scrape_drivers()
+    
+    for driver in drivers_list:
+        for scraped_driver in scraped_drivers:
+            if driver['id'] == scraped_driver['id']:
+                driver['info'] = scraped_driver['info']
+                driver['images']['helmet'] = scraped_driver['helmet']
+                driver['images']['picture'] = scraped_driver['picture']
+                break
+    
+    sorted_drivers = sorted(drivers_list, key=lambda x: (-x['points'], x['best_race_finish'], x['best_sprint_finish']))
+    return sorted_drivers
 
 drivers = load_drivers()
-pprint(drivers)

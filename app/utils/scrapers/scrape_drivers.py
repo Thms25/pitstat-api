@@ -36,20 +36,21 @@ def scrape_drivers():
             
             driver_data = driver_document.select_one('.f1-dl') if driver_document.select_one('.f1-dl') else None
 
-            driver_info = {}
+            driver_info = {
+                "bio":driver_bio
+            }
             keys = [k.text.strip().lower().replace(' ', '_') for k in driver_data.select('.f1-heading') ] if driver_data else ['no_data']
             values = [v.text.strip() for v in driver_data.select('.f1-text')] if driver_data else ['no_data']
 
             for i in range(len(keys)):
                 driver_info[keys[i]] = values[i]
-            
+
             drivers.append({
                 "id": full_name.lower().replace(" ", "_"),
                 'name': full_name,
                 'picture': driver_picture,
                 'helmet': driver_helmet,
                 'info': driver_info,
-                'bio': driver_bio
             })
         return drivers
 
@@ -57,6 +58,6 @@ def scrape_drivers():
         print(f"An error occurred: {e}")
         return []
 
-# drivers = scrape_drivers()
+drivers = scrape_drivers()
 
-# pprint(drivers)
+pprint(drivers)

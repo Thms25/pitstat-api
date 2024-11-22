@@ -1,10 +1,9 @@
 from pymongo.mongo_client import MongoClient
-import fastf1
 from dotenv import load_dotenv
 import os
-from pprint import pprint
-from ..scrapers.scrape_teams import scrape_teams
+
 from .data_fetch.populate_teams import load_teams
+from .data_fetch.populate_drivers import load_drivers
 load_dotenv()
 
 MONGODB_URL = os.getenv("MONGO_DB_CONNECT")
@@ -23,6 +22,7 @@ except Exception as e:
 if connected:
     db = client.get_database("pitstat")
     teams = load_teams()
+    drivers = load_drivers()
 
     try:
         db.drop_collection("teams")
@@ -31,4 +31,13 @@ if connected:
         print("Teams inserted to db")
     except Exception as e:
         print("Failed to insert teams to db")
+        print(e)
+        
+    try:
+        db.drop_collection("drivers")
+        db.create_collection("drivers")
+        db.drivers.insert_many(drivers)
+        print("Drivers inserted to db")
+    except Exception as e:
+        print("Failed to insert drivers to db")
         print(e)
