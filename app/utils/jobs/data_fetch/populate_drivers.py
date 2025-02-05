@@ -6,15 +6,17 @@ def load_drivers():
     today_timestamp = datetime.datetime.now()
     today = datetime.date.today()
     year = today.year
+    print(year)
     schedule = fastf1.get_event_schedule(year)
+    print(schedule)
     
     drivers = {}
 
     for round in schedule['RoundNumber']:
         if round == 0:
             continue
-        # if round == 3:
-        #     break
+        if round == 2:
+            break
         
         event = schedule.get_event_by_round(round)
 
@@ -26,6 +28,9 @@ def load_drivers():
 
         for d in race.results['DriverNumber']:
             race_driver = race.get_driver(d)
+            print("race driver:")
+            print(race_driver)
+            print("")
             code = race_driver.Abbreviation
             if code in drivers:
                 drivers[code]['points'] += race_driver.Points
@@ -75,3 +80,4 @@ def load_drivers():
     return sorted_drivers
 
 drivers = load_drivers()
+print(drivers)

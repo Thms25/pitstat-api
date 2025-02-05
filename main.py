@@ -17,4 +17,16 @@ app.include_router(teams.router)
 
 @app.get("/")
 def read_root():
-    return {"Info": "This is pitstat's api"}
+    return {
+        "name": "Pitstat API",
+        "description": "This api is for fetching formula 1 data",
+        "docs": "/docs",
+        "endpoints": [
+            "/drivers",
+            "/drivers/{driver_id}",
+            "/teams",
+            "/teams/{team_id}",
+            "/races",
+            "/races/{round}",
+        ]
+        }

@@ -5,9 +5,6 @@ from app.database.connection import connect
 
 router = APIRouter()
 
-
-router = APIRouter()
-
 async def get_mongo_drivers():
     client = await connect()
     db = client.get_database("pitstat")
