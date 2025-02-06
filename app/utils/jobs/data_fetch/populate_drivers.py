@@ -1,6 +1,7 @@
 import fastf1
 import datetime
 from ...scrapers.scrape_drivers import scrape_drivers
+from pprint import pprint
 
 def load_drivers():
     today_timestamp = datetime.datetime.now()
@@ -79,5 +80,4 @@ def load_drivers():
     sorted_drivers = sorted(drivers_list, key=lambda x: (-x['points'], x['best_race_finish'], x['best_sprint_finish']))
     return sorted_drivers
 
-drivers = load_drivers()
-print(drivers)
+pprint(scrape_drivers())

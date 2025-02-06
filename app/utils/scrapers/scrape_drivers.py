@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from pprint import pprint
+# from pprint import pprint
 
 def scrape_drivers():
     url = 'https://www.formula1.com/en/drivers'
@@ -16,15 +16,9 @@ def scrape_drivers():
         driver_elements = document.select('a.group.focus-visible\\:outline-0')
 
         for driver_element in driver_elements:
-            print("")
             names = driver_element.select('.f1-driver-name p')
             full_name = names[0].text.strip() + ' ' + names[1].text.strip()
-
             driver_link ='https://www.formula1.com' + driver_element['href']
-            print(full_name)
-            print(driver_link)
-            print("")
-            
             
             driver_response = requests.get(driver_link)
             driver_response.raise_for_status()
@@ -49,17 +43,16 @@ def scrape_drivers():
                 driver_info[keys[i]] = values[i]
             
             all_images = []
+            caroussel_div = driver_document.select('div.f1-carousel__slide')
+            if len(caroussel_div) > 0:
+                for div in caroussel_div:   
+                    all_images.append(div.select('img')[0]['src'].replace(' ', '%20'))
+                    
             journalist_articles = driver_document.select('div.grid.gap-normal.auto-rows-fr.f1-grid')
             articles_photos = journalist_articles[0].select('img')
             if len(articles_photos) > 0:
                 for img in articles_photos: 
                     all_images.append(img['src'].replace(' ', '%20'))
-                
-            caroussel_div = driver_document.select('div.f1-carousel__slide')
-            if len(caroussel_div) > 0:
-                for div in caroussel_div:   
-                    all_images.append(div.select('img')[0]['src'].replace(' ', '%20'))
-
 
             drivers.append({
                 "id": full_name.lower().replace(" ", "_"),
@@ -75,7 +68,3 @@ def scrape_drivers():
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
-
-drivers = scrape_drivers()
-
-pprint(drivers)
