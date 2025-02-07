@@ -1,23 +1,20 @@
 import fastf1
 import datetime
 from ...scrapers.scrape_drivers import scrape_drivers
-from pprint import pprint
+# from pprint import pprint
 
 def load_drivers():
     today_timestamp = datetime.datetime.now()
     today = datetime.date.today()
     year = today.year
-    print(year)
     schedule = fastf1.get_event_schedule(year)
-    print(schedule)
     
     drivers = {}
-
+    print("Starting FastF1 driver data load")
     for round in schedule['RoundNumber']:
+        print(f"Loading data for round {round}")
         if round == 0:
             continue
-        if round == 2:
-            break
         
         event = schedule.get_event_by_round(round)
 
@@ -69,6 +66,9 @@ def load_drivers():
     drivers_list = list(drivers.values())
     scraped_drivers = scrape_drivers()
     
+    if len(drivers_list) == 0:
+        return scraped_drivers
+    
     for driver in drivers_list:
         for scraped_driver in scraped_drivers:
             if driver['id'] == scraped_driver['id']:
@@ -79,5 +79,3 @@ def load_drivers():
     
     sorted_drivers = sorted(drivers_list, key=lambda x: (-x['points'], x['best_race_finish'], x['best_sprint_finish']))
     return sorted_drivers
-
-pprint(scrape_drivers())

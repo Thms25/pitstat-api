@@ -2,8 +2,8 @@ from pymongo.mongo_client import MongoClient
 from dotenv import load_dotenv
 import os
 
-# from .data_fetch.populate_teams import load_teams
-# from .data_fetch.populate_drivers import load_drivers
+from .data_fetch.populate_teams import load_teams
+from .data_fetch.populate_drivers import load_drivers
 from ..scrapers.scrape_past_results import get_past_data
 load_dotenv()
 
@@ -22,26 +22,26 @@ except Exception as e:
     
 if connected:
     db = client.get_database("pitstat")
-    # teams = load_teams()
-    # drivers = load_drivers()
 
-    # try:
-    #     db.drop_collection("teams")
-    #     db.create_collection("teams")   
-    #     db.teams.insert_many(teams)
-    #     print("Teams inserted to db")
-    # except Exception as e:
-    #     print("Failed to insert teams to db")
-    #     print(e)
+    try:
+        teams = load_teams()  
+        db.drop_collection("teams")
+        db.create_collection("teams")   
+        db.teams.insert_many(teams)
+        print("Teams inserted to db")
+    except Exception as e:
+        print("Failed to insert teams to db")
+        print(e)
         
-    # try:
-    #     db.drop_collection("drivers")
-    #     db.create_collection("drivers")
-    #     db.drivers.insert_many(drivers)
-    #     print("Drivers inserted to db")
-    # except Exception as e:
-    #     print("Failed to insert drivers to db")
-    #     print(e)
+    try:
+        drivers = load_drivers()
+        db.drop_collection("drivers")
+        db.create_collection("drivers")
+        db.drivers.insert_many(drivers)
+        print("Drivers inserted to db")
+    except Exception as e:
+        print("Failed to insert drivers to db")
+        print(e)
     
     try:
         db.drop_collection("archives")

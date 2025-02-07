@@ -11,6 +11,7 @@ def load_teams():
         race_session.load()
 
         scraped_teams = scrape_teams()
+        return scraped_teams
 
         teams = {}
         for number in race_session.drivers:

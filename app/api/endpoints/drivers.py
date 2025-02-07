@@ -23,7 +23,7 @@ async def read_drivers():
 
     
 @router.get("/drivers/{driver_id}")
-async def read_driver(driver_id: str):
+async def read_driver(driver_id: int):
     drivers = await get_mongo_drivers()
     driver = next((d for d in drivers if d['number'] == driver_id), None)
     if not driver:
