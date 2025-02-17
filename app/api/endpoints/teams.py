@@ -23,8 +23,7 @@ async def read_teams():
 @router.get("/teams/{team_id}")
 async def read_team(team_id: str):
     teams = await get_mongo_teams()
-    team = next((team for team in teams if team['id'] == team_id), None)
+    team = next((team for team in teams if team['id'] == team_id.lower()), None)
     if team:
         return team
-    else:
-        return {"team_id": team_id, "error": "Team not found"}
+    return {"team_id": team_id, "error": "Team not found"}

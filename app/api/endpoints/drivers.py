@@ -19,7 +19,8 @@ async def get_mongo_drivers():
 
 @router.get("/drivers")
 async def read_drivers():
-    return await get_mongo_drivers()
+    drivers = await get_mongo_drivers()
+    return sorted(drivers, key=lambda d: d['rank'])
 
     
 @router.get("/drivers/{driver_id}")
