@@ -2,9 +2,22 @@ from fastapi import APIRouter
 import fastf1
 import countryflag
 import datetime
-
+from app.database.connection import connect
 
 router = APIRouter()
+
+async def get_archived_races(year: int):
+    client = await connect()
+    db = client.get_database("pitstat")
+    arc_collection = db.get_collection("archives")
+    arc_cursor = arc_collection.find()
+    archives = list(arc_cursor)
+    archive = next((arc for arc in archives if arc['year'] == str(year)), None)
+
+    if not archive:
+        return {"error": "No data available for that year"}
+
+    return archive['races_data']
 
 async def get_schedule(year: int):
     return fastf1.get_event_schedule(year, include_testing=False, backend=None, force_ergast=False)
@@ -22,8 +35,12 @@ def clean_race_info(info):
         'flag': countryflag.getflag([info['Country']]),
     }
 
+current_year = datetime.datetime.now().year
 @router.get("/races")
-async def read_races(year: int = 2024):
+async def read_races(year: int = current_year):
+    if year >= 2019 and year < current_year:
+        races = await get_archived_races(year)
+        return races
     calendar = await get_schedule(year)
     races = calendar.to_dict(orient='records')
     clean_races = []
